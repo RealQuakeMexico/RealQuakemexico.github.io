@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Ondas Sísmicas</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        #map {
+            height: 80vh;
+            width: 100%;
+            display: none;
+        }
+        #login {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #2c3e50;
+            color: white;
+        }
+        #login form {
+            background: #34495e;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        #login select {
+            margin: 10px 0;
+            padding: 5px;
+            width: 100%;
+        }
+        #login button {
+            background-color: #e74c3c;
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+            width: 100%;
+        }
+        #timer {
+            text-align: center;
+            font-size: 20px;
+            padding: 10px;
+            color: #333;
+            display: none;
+        }
+        #welcomePopup {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #27ae60;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 18px;
+            display: none;
+            z-index: 1000;
+        }
+        #progressBar {
+            margin-top: 10px;
+            width: 100%;
+            background-color: white;
+            border-radius: 5px;
+        }
+        #progress {
+            height: 10px;
+            background-color: #2ecc71;
+            border-radius: 5px;
+            width: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="login">
+    <form id="locationForm">
+        <h2>Selecciona tu ubicación</h2>
+        <select id="locationSelect">
+            <option value="" disabled selected>Selecciona una ubicación</option>
+<option value="tapachula_chis">Tapachula, Chis</option>
+<option value="huixtla_chis">Huixtla, Chis</option>
+<option value="escuintla_chis">Escuintla, Chis</option>
+<option value="mapastepec_chis">Mapastepec, Chis</option>
+<option value="pijijiapan_chis">Pijijiapan, Chis</option>
+<option value="tres_picos_chis">Tres Picos, Chis</option>
+<option value="toanla_chis">Toanla, Chis</option>
+<option value="puerto_arista_chis">Puerto Arista, Chis</option>
+<option value="arriaga_chis">Arriaga, Chis</option>
+<option value="tuxtla_chis">Tuxtla, Chis</option>
+<option value="suchiapa_chis">Suchiapa, Chis</option>
+<option value="villaflores_chis">Villaflores, Chis</option>
+<option value="teopisca_chis">Teopisca, Chis</option>
+<option value="cintalapa_chis">Cintalapa, Chis</option>
+<option value="altamirano_chis">Altamirano, Chis</option>
+<option value="villahermosa_tabasco">Villahermosa, Tabasco</option>
+<option value="cardenas_tabasco">Cárdenas, Tabasco</option>
+<option value="paraiso_tabasco">Paraíso, Tabasco</option>
+<option value="comalcalco_tabasco">Comalcalco, Tabasco</option>
+<option value="minatitlan_veracruz">Minatitlán, Veracruz</option>
+<option value="coatzacoalcos_veracruz">Coatzacoalcos, Veracruz</option>
+<option value="boca_del_rio_veracruz">Boca del Río, Veracruz</option>
+<option value="xalapa_veracruz">Xalapa, Veracruz</option>
+<option value="salina_cruz_oaxaca">Salina Cruz, Oaxaca</option>
+<option value="morro_de_mazatan_oaxaca">Morro de Mazatán, Oaxaca</option>
+<option value="san_pedro_huamellula_oaxaca">San Pedro Huamellula, Oaxaca</option>
+<option value="oaxaca_de_juarez_oaxaca">Oaxaca de Juárez, Oaxaca</option>
+<option value="san_juan_bautista_tuxtepec_oaxaca">San Juan Bautista Tuxtepec, Oaxaca</option>
+<option value="matias_romero_oaxaca">Matías Romero, Oaxaca</option>
+<option value="ixtepect_oaxaca">Ixtepect, Oaxaca</option>
+<option value="santa_maria_zacatepec_oaxaca">Santa María Zacatepec, Oaxaca</option>
+<option value="el_coyul_oaxaca">El Coyul, Oaxaca</option>
+<option value="crucecita_oaxaca">Crucecita, Oaxaca</option>
+<option value="puerto_angel_oaxaca">Puerto Ángel, Oaxaca</option>
+<option value="puerto_escondido_oaxaca">Puerto Escondido, Oaxaca</option>
+<option value="rio_grande_oaxaca">Río Grande, Oaxaca</option>
+<option value="laguna_de_chacahua_oaxaca">Laguna de Chacahua, Oaxaca</option>
+<option value="pinotepa_nacional">Pinotepa Nacional</option>
+<option value="san_nicolas_guerrero">San Nicolás, Guerrero</option>
+<option value="ometepec_guerrero">Ometepec, Guerrero</option>
+<option value="marquelia_guerrero">Marquelia, Guerrero</option>
+<option value="copala_guerrero">Copala, Guerrero</option>
+<option value="barra_vieja_guerrero">Barra Vieja, Guerrero</option>
+<option value="san_marcos_guerrero">San Marcos, Guerrero</option>
+<option value="acapulco_guerrero">Acapulco, Guerrero</option>
+<option value="coyuca_de_benitez_guerrero">Coyuca de Benitez, Guerrero</option>
+<option value="chilpancingo_guerrero">Chilpancingo, Guerrero</option>
+<option value="cd_altamirano_guerrero">CD Altamirano, Guerrero</option>
+<option value="tlapa_guerrero">Tlapa, Guerrero</option>
+<option value="iguala_guerrero">Iguala, Guerrero</option>
+<option value="cuernavaca_morelos">Cuernavaca, Morelos</option>
+<option value="chautla_de_tapia_puebla">Chautla de Tapia, Puebla</option>
+<option value="puebla_zaragoza">Puebla Zaragoza</option>
+<option value="san_jeronimo_de_juarez_guerrero">San Jerónimo de Juárez, Guerrero</option>
+<option value="papanoa_guerrero">Papanoa, Guerrero</option>
+<option value="petatlan_guerrero">Petatlán, Guerrero</option>
+<option value="zihuatanejo_guerrero">Zihuatanejo, Guerrero</option>
+<option value="san_jose_ixtapa_guerrero">San José Ixtapa, Guerrero</option>
+<option value="ciudad_lazaro_cardenas_michoacan">Ciudad Lázaro Cárdenas, Michoacán</option>
+<option value="bahia_bufadero_michoacan">Bahía Bufadero, Michoacán</option>
+<option value="huahua_michoacan">Huahua, Michoacán</option>
+<option value="tizupan_michoacan">Tizupan, Michoacán</option>
+<option value="maruata_michoacan">Maruata, Michoacán</option>
+<option value="el_faro_de_bucerias_michoacan">El Faro de Bucerías, Michoacán</option>
+<option value="aquila_michoacan">Aquila, Michoacán</option>
+<option value="cuyutlan_colima">Cuyutlán, Colima</option>
+<option value="manzanillo_colima">Manzanillo, Colima</option>
+<option value="la_manzanilla_jalisco">La Manzanilla, Jalisco</option>
+<option value="emiliano_zapata_jalisco">Emiliano Zapata, Jalisco</option>
+<option value="guadalajara_jalisco">Guadalajara, Jalisco</option>
+<option value="puerto_vallarta_jalisco">Puerto Vallarta, Jalisco</option>
+<option value="centro_historico_cdmx">Centro Histórico, CDMX</option>
+<option value="chapultepec_cdmx">Chapultepec, CDMX</option>
+<option value="coyoacan_cdmx">Coyoacán, CDMX</option>
+<option value="polanco_cdmx">Polanco, CDMX</option>
+<option value="xochimilco_cdmx">Xochimilco, CDMX</option>
+<option value="tlalpan_cdmx">Tlalpan, CDMX</option>
+<option value="iztapalapa_cdmx">Iztapalapa, CDMX</option>
+<option value="venustiano_carranza_cdmx">Venustiano Carranza, CDMX</option>
+<option value="benito_juarez_cdmx">Benito Juárez, CDMX</option>
+<option value="cuauhtemoc_cdmx">Cuauhtémoc, CDMX</option>
+<option value="alvaro_obregon_cdmx">Álvaro Obregón, CDMX</option>
+<option value="magdalena_contreras_cdmx">Magdalena Contreras, CDMX</option>
+<option value="azcapotzalco_cdmx">Azcapotzalco, CDMX</option>
+<option value="milpa_alta_cdmx">Milpa Alta, CDMX</option>
+<option value="tlahuac_cdmx">Tláhuac, CDMX</option>
+<option value="gustavo_a_madero_cdmx">Gustavo A. Madero, CDMX</option>
+<option value="cuautepec_cdmx">Cuautepec, CDMX</option>
+<option value="chimalhuacan">Chimalhuacán</option>
+<option value="neza">Nezahualcóyotl</option>
+<option value="toluca">Toluca</option>
+<option value="chimalhuacan_centro">Chimalhuacán Centro</option>
+<option value="neza_mexico">Neza México</option>
+<option value="toluca_centro">Toluca Centro</option>
+<option value="chimalhuacan_tierra_nueva">Chimalhuacán Tierra Nueva</option>
+<option value="neza_la_perla">Neza La Perla</option>
+<option value="toluca_la_finca">Toluca La Finca</option>
+<option value="chimalhuacan_campo_deportivo">Chimalhuacán Campo Deportivo</option>
+<option value="neza_el_sol">Neza El Sol</option>
+<option value="toluca_cumbres">Toluca Cumbres</option>
+};
+        </select>
+        
+        <button type="submit">Ingresar</button>
+    </form>
+</div>
+
+<div id="map"></div>
+<div id="timer">Tiempo estimado para la onda roja: <span id="countdown"></span> segundos</div>
+
+<div id="welcomePopup">
+    <p>Bienvenido al mapa en vivo</p>
+    <div id="progressBar">
+        <div id="progress"></div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+// Ubicaciones con valores booleanos y sus intensidades
+const locations = {
+"tapachula_chis": { coords: [14.8937, -92.2538], active: false, intensity: "leve" },
+"huixtla_chis": { coords: [14.9475, -92.5783], active: false, intensity: "leve" },
+"escuintla_chis": { coords: [14.9395, -92.5820], active: false, intensity: "leve" },
+"mapastepec_chis": { coords: [14.8479, -92.4157], active: false, intensity: "leve" },
+"pijijiapan_chis": { coords: [14.9795, -92.6301], active: false, intensity: "leve" },
+"tres_picos_chis": { coords: [14.7748, -92.4323], active: false, intensity: "leve" },
+"toanla_chis": { coords: [14.7267, -92.4615], active: false, intensity: "leve" },
+"puerto_arista_chis": { coords: [14.6764, -92.4731], active: false, intensity: "leve" },
+"arriaga_chis": { coords: [16.1841, -93.0467], active: false, intensity: "leve" },
+"tuxtla_chis": { coords: [16.7583, -93.1165], active: false, intensity: "leve" },
+"suchiapa_chis": { coords: [16.7248, -93.0280], active: false, intensity: "leve" },
+"villaflores_chis": { coords: [16.2925, -93.0195], active: false, intensity: "leve" },
+"teopisca_chis": { coords: [16.6191, -92.8596], active: false, intensity: "leve" },
+"cintalapa_chis": { coords: [16.7081, -93.0710], active: false, intensity: "leve" },
+"altamirano_chis": { coords: [16.5691, -92.5760], active: false, intensity: "leve" },
+"villahermosa_tabasco": { coords: [17.9873, -92.9375], active: false, intensity: "leve" },
+"cardenas_tabasco": { coords: [18.1064, -93.1207], active: false, intensity: "leve" },
+"paraiso_tabasco": { coords: [18.4003, -93.1971], active: false, intensity: "leve" },
+"comalcalco_tabasco": { coords: [18.5667, -93.2164], active: false, intensity: "leve" },
+"minatitlan_veracruz": { coords: [17.5933, -94.5556], active: false, intensity: "leve" },
+"coatzacoalcos_veracruz": { coords: [18.1464, -94.4361], active: false, intensity: "leve" },
+"boca_del_rio_veracruz": { coords: [19.1630, -96.1748], active: false, intensity: "leve" },
+"xalapa_veracruz": { coords: [19.1424, -96.9229], active: false, intensity: "leve" },
+"salina_cruz_oaxaca": { coords: [16.1837, -94.7651], active: false, intensity: "leve" },
+"morro_de_mazatan_oaxaca": { coords: [15.9980, -95.2050], active: false, intensity: "leve" },
+"san_pedro_huamellula_oaxaca": { coords: [16.2364, -95.0989], active: false, intensity: "leve" },
+"oaxaca_de_juarez_oaxaca": { coords: [17.0732, -96.7266], active: false, intensity: "leve" },
+"san_juan_bautista_tuxtepec_oaxaca": { coords: [18.0591, -95.2001], active: false, intensity: "leve" },
+"matias_romero_oaxaca": { coords: [16.7956, -95.2232], active: false, intensity: "leve" },
+"ixtepect_oaxaca": { coords: [16.3460, -95.2361], active: false, intensity: "leve" },
+"santa_maria_zacatepec_oaxaca": { coords: [16.5456, -95.1671], active: false, intensity: "leve" },
+"el_coyul_oaxaca": { coords: [15.8117, -95.1280], active: false, intensity: "leve" },
+"crucecita_oaxaca": { coords: [15.8254, -96.1628], active: false, intensity: "leve" },
+"puerto_angel_oaxaca": { coords: [15.6892, -96.5144], active: false, intensity: "leve" },
+"puerto_escondido_oaxaca": { coords: [15.8576, -97.0701], active: false, intensity: "leve" },
+"rio_grande_oaxaca": { coords: [15.9022, -97.1235], active: false, intensity: "leve" },
+"laguna_de_chacahua_oaxaca": { coords: [15.7465, -96.2813], active: false, intensity: "leve" },
+"pinotepa_nacional": { coords: [16.5000, -98.2025], active: false, intensity: "leve" },
+"san_nicolas_guerrero": { coords: [16.5325, -98.1646], active: false, intensity: "leve" },
+"ometepec_guerrero": { coords: [16.6561, -98.3576], active: false, intensity: "leve" },
+"marquelia_guerrero": { coords: [16.7423, -98.4664], active: false, intensity: "leve" },
+"copala_guerrero": { coords: [16.7806, -99.5797], active: false, intensity: "leve" },
+"barra_vieja_guerrero": { coords: [16.8706, -99.8605], active: false, intensity: "leve" },
+"san_marcos_guerrero": { coords: [16.6892, -99.1991], active: false, intensity: "leve" },
+"acapulco_guerrero": { coords: [16.8531, -99.8237], active: false, intensity: "leve" },
+"coyuca_de_benitez_guerrero": { coords: [17.1674, -100.4662], active: false, intensity: "leve" },
+"chilpancingo_guerrero": { coords: [17.5521, -99.4960], active: false, intensity: "leve" },
+"cd_altamirano_guerrero": { coords: [17.3783, -100.3619], active: false, intensity: "leve" },
+"tlapa_guerrero": { coords: [17.5825, -98.5350], active: false, intensity: "leve" },
+"iguala_guerrero": { coords: [18.3031, -99.5492], active: false, intensity: "leve" },
+"cuernavaca_morelos": { coords: [18.9284, -99.2278], active: false, intensity: "leve" },
+"chautla_de_tapia_puebla": { coords: [18.9532, -98.1672], active: false, intensity: "leve" },
+"puebla_zaragoza": { coords: [19.0458, -98.2032], active: false, intensity: "leve" },
+"san_jeronimo_de_juarez_guerrero": { coords: [16.8470, -98.7674], active: false, intensity: "leve" },
+"papanoa_guerrero": { coords: [17.0313, -100.5998], active: false, intensity: "leve" },
+"petatlan_guerrero": { coords: [17.3034, -100.4723], active: false, intensity: "leve" },
+"zihuatanejo_guerrero": { coords: [17.6506, -101.5584], active: false, intensity: "leve" },
+"san_jose_ixtapa_guerrero": { coords: [17.6411, -101.5692], active: false, intensity: "leve" },
+"ciudad_lazaro_cardenas_michoacan": { coords: [17.9617, -102.1878], active: false, intensity: "leve" },
+"bahia_bufadero_michoacan": { coords: [18.0338, -102.0820], active: false, intensity: "leve" },
+"huahua_michoacan": { coords: [18.0894, -102.1733], active: false, intensity: "leve" },
+"tizupan_michoacan": { coords: [18.0833, -102.1167], active: false, intensity: "leve" },
+"maruata_michoacan": { coords: [18.2333, -102.1667], active: false, intensity: "leve" },
+"el_faro_de_bucerias_michoacan": { coords: [18.2055, -102.0610], active: false, intensity: "leve" },
+"aquila_michoacan": { coords: [18.4313, -102.1467], active: false, intensity: "leve" },
+"cuyutlan_colima": { coords: [18.9720, -104.1482], active: false, intensity: "leve" },
+"manzanillo_colima": { coords: [19.0511, -104.3190], active: false, intensity: "leve" },
+"la_manzanilla_jalisco": { coords: [19.2513, -104.8382], active: false, intensity: "leve" },
+"emiliano_zapata_jalisco": { coords: [20.0256, -103.4451], active: false, intensity: "leve" },
+"guadalajara_jalisco": { coords: [20.6597, -103.3496], active: false, intensity: "leve" },
+"puerto_vallarta_jalisco": { coords: [20.6237, -105.2253], active: false, intensity: "leve" },
+"centro_historico_cdmx": { coords: [19.4326, -99.1332], active: false, intensity: "leve" },
+"chapultepec_cdmx": { coords: [19.4250, -99.1872], active: false, intensity: "leve" },
+"coyoacan_cdmx": { coords: [19.3592, -99.1622], active: false, intensity: "leve" },
+"polanco_cdmx": { coords: [19.4360, -99.1943], active: false, intensity: "leve" },
+"xochimilco_cdmx": { coords: [19.2526, -99.1198], active: false, intensity: "leve" },
+"tlalpan_cdmx": { coords: [19.2904, -99.1814], active: false, intensity: "leve" },
+"iztapalapa_cdmx": { coords: [19.3575, -99.0343], active: false, intensity: "leve" },
+"venustiano_carranza_cdmx": { coords: [19.4180, -99.0904], active: false, intensity: "leve" },
+"benito_juarez_cdmx": { coords: [19.4050, -99.1628], active: false, intensity: "leve" },
+"cuauhtemoc_cdmx": { coords: [19.4260, -99.1543], active: false, intensity: "leve" },
+"alvaro_obregon_cdmx": { coords: [19.3923, -99.1880], active: false, intensity: "leve" },
+"magdalena_contreras_cdmx": { coords: [19.2910, -99.1995], active: false, intensity: "leve" },
+"azcapotzalco_cdmx": { coords: [19.2465, -99.1800], active: false, intensity: "leve" },
+"milpa_alta_cdmx": { coords: [19.2493, -99.0041], active: false, intensity: "leve" },
+"tlahuac_cdmx": { coords: [19.2593, -99.0612], active: false, intensity: "leve" },
+"gustavo_a_madero_cdmx": { coords: [19.4692, -99.0971], active: false, intensity: "leve" },
+"cuautepec_cdmx": { coords: [19.5995, -99.1890], active: false, intensity: "leve" },
+"chimalhuacan": { coords: [19.4206, -98.9726], active: false, intensity: "leve" },
+"neza": { coords: [19.4000, -99.0232], active: false, intensity: "leve" },
+"toluca": { coords: [19.2826, -99.6579], active: false, intensity: "leve" },
+"chimalhuacan_centro": { coords: [19.4196, -98.9794], active: false, intensity: "leve" },
+"neza_mexico": { coords: [19.3998, -99.0238], active: false, intensity: "leve" },
+"toluca_centro": { coords: [19.3134, -99.6599], active: false, intensity: "leve" },
+"chimalhuacan_tierra_nueva": { coords: [19.4181, -98.9923], active: false, intensity: "leve" },
+"neza_la_perla": { coords: [19.3850, -99.0344], active: false, intensity: "leve" },
+"toluca_la_finca": { coords: [19.2978, -99.6342], active: false, intensity: "leve" },
+"chimalhuacan_campo_deportivo": { coords: [19.4218, -98.9649], active: false, intensity: "leve" },
+"neza_el_sol": { coords: [19.3991, -99.0280], active: false, intensity: "leve" },
+"toluca_cumbres": { coords: [19.2851, -99.6672], active: false, intensity: "leve" },
+};
+
+// Colores según intensidad
+const intensityColors = {
+    "debil": { primary: "#87CEFA", secondary: "rgba(135, 206, 250, 0.5)" }, // Azul claro
+    "leve": { primary: "#87CEFA", secondary: "rgba(135, 206, 250, 0.5)" },
+    "ligero": { primary: "#87CEFA", secondary: "rgba(135, 206, 250, 0.5)" },
+    "moderado": { primary: "#FFA500", secondary: "rgba(255, 165, 0, 0.5)" }, // Naranja
+    "algofuerte": { primary: "#FFA500", secondary: "rgba(255, 165, 0, 0.5)" },
+    "fuerte": { primary: "#FF0000", secondary: "rgba(255, 0, 0, 0.5)" }, // Rojo
+    "violento": { primary: "#FF0000", secondary: "rgba(255, 0, 0, 0.5)" },
+    "extremo": { primary: "#8A2BE2", secondary: "rgba(138, 43, 226, 0.5)" } // Violeta
+};
+
+let map;
+let selectedLocation = null;
+let countdownInterval;
+const waveSpeed = 6.4; // Velocidad de la onda roja en km/s
+
+// Función para calcular la distancia entre dos coordenadas
+function calculateDistance(coord1, coord2) {
+    const R = 6371; // Radio de la Tierra en km
+    const lat1 = coord1[0] * Math.PI / 180;
+    const lat2 = coord2[0] * Math.PI / 180;
+    const deltaLat = (coord2[0] - coord1[0]) * Math.PI / 180;
+    const deltaLon = (coord2[1] - coord1[1]) * Math.PI / 180;
+
+    const a = Math.sin(deltaLat / 2) * Math.sin(deltaLat / 2) +
+              Math.cos(lat1) * Math.cos(lat2) *
+              Math.sin(deltaLon / 2) * Math.sin(deltaLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c; // Distancia en km
+}
+
+// Detecta automáticamente el epicentro basado en el primer valor `true`
+function detectEpicenter() {
+    for (let location in locations) {
+        if (locations[location].active) {
+            return locations[location].coords;
+        }
+    }
+    return null; // No hay epicentro activo
+}
+
+// Muestra el mapa sin ondas sísmicas si no hay epicentro activo
+document.getElementById('locationForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    selectedLocation = document.getElementById('locationSelect').value;
+
+    if (selectedLocation) {
+        // Guarda la ubicación seleccionada en localStorage
+        localStorage.setItem('selectedLocation', selectedLocation);
+
+        // Oculta la pantalla de inicio y muestra el mapa
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('map').style.display = 'block';
+        showWelcomePopup();
+
+        // Carga el mapa y verifica si hay epicentro
+        loadMap(selectedLocation);
+    }
+});
+
+function loadMap(selectedLocation) {
+    // Verifica si el mapa ya ha sido inicializado
+    if (map) {
+        map.remove(); // Elimina el mapa existente
+    }
+
+    const epicenterCoords = detectEpicenter();
+    
+    // Inicializa el mapa
+    map = L.map('map').setView(locations[selectedLocation].coords, 10);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+    }).addTo(map);
+
+    if (epicenterCoords) {
+        createSeismicWaves(epicenterCoords, locations[selectedLocation].intensity);
+        const estimatedArrivalTime = Math.ceil(calculateDistance(epicenterCoords, locations[selectedLocation].coords) / waveSpeed);
+        startCountdown(estimatedArrivalTime);
+    }
+}
+
+// Muestra un popup de bienvenida
+function showWelcomePopup() {
+    const welcomePopup = document.getElementById('welcomePopup');
+    welcomePopup.style.display = 'block';
+
+    let progress = 0;
+    const progressBar = document.getElementById('progress');
+
+    const interval = setInterval(() => {
+        if (progress >= 100) {
+            clearInterval(interval);
+            welcomePopup.style.display = 'none';
+        } else {
+            progress += 1;
+            progressBar.style.width = progress + '%';
+        }
+    }, 100);
+}
+
+// Crea ondas sísmicas en el mapa
+function createSeismicWaves(epicenterCoords, intensity) {
+    const { primary, secondary } = intensityColors[intensity];
+
+    const wave1 = L.circle(epicenterCoords, {
+        color: primary,
+        fillColor: secondary,
+        fillOpacity: 0.7,
+        radius: 1000 // Radio inicial
+    }).addTo(map);
+
+    const wave2 = L.circle(epicenterCoords, {
+        color: primary,
+        fillColor: secondary,
+        fillOpacity: 0.5,
+        radius: 500 // Radio inicial
+    }).addTo(map);
+
+    let radius1 = 1;
+    let radius2 = 1;
+
+    // Expande las ondas
+    const expandWaves = setInterval(() => {
+        radius1 += 25; // Incremento del radio
+        radius2 += 35; // Incremento del radio
+
+        wave1.setRadius(radius1);
+        wave2.setRadius(radius2);
+
+        if (radius1 > 800090 && radius2 > 800000) {
+            clearInterval(expandWaves); // Detener expansión
+            wave1.remove(); // Eliminar ondas del mapa
+            wave2.remove();
+        }
+    }, 1); // Cada 0.5 segundos
+}
+
+// Inicia la cuenta regresiva para la llegada de la onda roja
+function startCountdown(estimatedTime) {
+    const countdownDisplay = document.getElementById('countdown');
+    let timeRemaining = estimatedTime;
+
+    countdownDisplay.innerText = timeRemaining; // Muestra el tiempo inicial
+    document.getElementById('timer').style.display = 'block';
+
+    countdownInterval = setInterval(() => {
+        timeRemaining--;
+        countdownDisplay.innerText = timeRemaining;
+
+        if (timeRemaining <= 0) {
+            clearInterval(countdownInterval);
+            countdownDisplay.innerText = '¡Llegó!';
+            document.getElementById('timer').style.display = 'none'; // Ocultar temporizador
+        }
+    }, 1000); // Cada segundo
+}
+
+// Carga la ubicación seleccionada desde localStorage
+window.onload = function() {
+    const savedLocation = localStorage.getItem('selectedLocation');
+    if (savedLocation) {
+        document.getElementById('locationSelect').value = savedLocation;
+        loadMap(savedLocation);
+    }
+};
+</script>
+</body>
+</html>
